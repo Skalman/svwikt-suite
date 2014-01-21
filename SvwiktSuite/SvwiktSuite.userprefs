@@ -1,8 +1,9 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="SvwiktSuite\Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="SvwiktSuite/Program.cs">
     <Files>
-      <File FileName="SvwiktSuite\Program.cs" Line="4" Column="32" />
+      <File FileName="SvwiktSuite/MainWindow.cs" Line="1" Column="1" />
+      <File FileName="SvwiktSuite/Program.cs" Line="32" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
