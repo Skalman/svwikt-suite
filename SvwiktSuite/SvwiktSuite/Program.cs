@@ -35,8 +35,10 @@ namespace SvwiktSuite
 			//SQLiteConnection db = new SQLiteConnection(connectionString);
 			db.Open();
 
-			//SQL query
+			//skapa Command
 			SqliteCommand cmd = db.CreateCommand();
+
+			//SQL query
 			cmd.CommandText = "SELECT pagename, tmpl_syntax FROM main";
 
 			//läs de första 100 raderna från databasen och skriv ut dem i konsollen
