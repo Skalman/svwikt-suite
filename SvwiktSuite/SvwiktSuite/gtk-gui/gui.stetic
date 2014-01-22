@@ -14,7 +14,24 @@
     <property name="WindowPosition">CenterOnParent</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
-      <placeholder />
+      <widget class="Gtk.Fixed" id="fixed1">
+        <property name="MemberName" />
+        <property name="HasWindow">False</property>
+        <child>
+          <widget class="Gtk.Button" id="buttonDbTest">
+            <property name="MemberName" />
+            <property name="CanFocus">True</property>
+            <property name="Type">TextOnly</property>
+            <property name="Label" translatable="yes">Testa databas</property>
+            <property name="UseUnderline">True</property>
+            <signal name="Clicked" handler="OnButtonDbTestClicked" />
+          </widget>
+          <packing>
+            <property name="X">121</property>
+            <property name="Y">83</property>
+          </packing>
+        </child>
+      </widget>
     </child>
   </widget>
 </stetic-interface>
