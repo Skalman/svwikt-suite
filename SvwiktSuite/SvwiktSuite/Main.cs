@@ -2,18 +2,16 @@ using System;
 using Gtk;
 using System.IO;
 
-namespace SvwiktSuite
+
+class MainClass
 {
-	class MainClass
+	public static void Main (string[] args)
 	{
-		public static void Main (string[] args)
-		{
-			Application.Init();
+		Application.Init();
 
-			MainWindow win = new MainWindow();
-			win.Show();
-			Application.Run();
-		}
-
+		MainWindow win = new MainWindow();
+		win.Show();
+		Application.Run();
 	}
+
 }
