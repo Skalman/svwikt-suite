@@ -5,7 +5,7 @@ public partial class MainWindow
 {
 	private global::Gtk.Fixed fixed1;
 	private global::Gtk.Button buttonDbTest;
-	
+
 	protected virtual void Build ()
 	{
 		global::Stetic.Gui.Initialize (this);

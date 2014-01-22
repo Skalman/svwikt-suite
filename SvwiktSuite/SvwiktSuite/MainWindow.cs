@@ -65,5 +65,6 @@ public partial class MainWindow: Gtk.Window
         //kör databasläsningstest
 		Thread thread = new Thread(new ThreadStart(ReadFromDbTest));
 		thread.Start();
+        WiktionaryConnection Wikt = new WiktionaryConnection();
     }
 }
