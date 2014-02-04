@@ -89,6 +89,17 @@ namespace SvwiktSuite
         }
 
         public JObject Get(
+            IDictionary<string, string> parameters,
+            string uri = null,
+            bool cookies = false)
+        {
+            return Get(
+                uri: uri,
+                parameters: EncodeParameters(parameters),
+                cookies: cookies);
+        }
+
+        public JObject Get(
             string uri = null,
             string parameters = null,
             bool cookies = false)
