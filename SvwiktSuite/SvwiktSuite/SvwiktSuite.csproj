@@ -85,6 +85,9 @@
     <Compile Include="Section.cs" />
     <Compile Include="TranslationLinkUpdater.cs" />
     <Compile Include="Page.cs" />
+    <Compile Include="H2Section.cs" />
+    <Compile Include="H3Section.cs" />
+    <Compile Include="ParsedPage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
