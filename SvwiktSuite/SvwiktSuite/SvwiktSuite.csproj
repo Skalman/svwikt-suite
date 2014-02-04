@@ -88,6 +88,7 @@
     <Compile Include="H2Section.cs" />
     <Compile Include="H3Section.cs" />
     <Compile Include="ParsedPage.cs" />
+    <Compile Include="NetUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

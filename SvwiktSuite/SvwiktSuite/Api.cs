@@ -12,69 +12,31 @@ namespace SvwiktSuite
 {
     public class Api
     {
-        protected string DefaultDomain;
-        protected string UserAgent;
+        protected NetUtils netUtils;
 
         public Api(
             string defaultDomain,
             string userAgent = null)
         {
-            DefaultDomain = defaultDomain;
-            UserAgent = userAgent;
+            netUtils = new NetUtils(
+                defaultUri: defaultDomain,
+                userAgent: userAgent);
         }
 
-        public static string EncodeParameters(IDictionary<string, string> parameters)
+
+        public JObject Get(
+            string parameters,
+            string domain = null,
+            bool cookies = false)
         {
-            if (parameters == null && parameters.Count == 0)
-                return "";
+            string uri = domain == null ? "" : domain;
+            uri += "/w/api.php?format=json&maxlag=2";
 
-            IEnumerable<string> list = parameters.Select(
-                p => Uri.EscapeDataString(p.Key) +
-                "=" + Uri.EscapeDataString(p.Value)
-            );
-            return string.Join("&", list);
-        }
+            JObject json = netUtils.Get(
+                uri: uri,
+                parameters: parameters,
+                cookies: cookies);
 
-        protected HttpWebRequest PrepareRequest(string uri)
-        {
-            // Ignore invalid SSL certificates
-            ServicePointManager.ServerCertificateValidationCallback = (a,b,c,d) => true;
-            var req = (HttpWebRequest)WebRequest.Create(uri);
-            req.UserAgent = UserAgent;
-            req.MaximumAutomaticRedirections = 1;
-            return req;
-        }
-
-        protected JObject GetResponseJson(HttpWebRequest req)
-        {
-            var res = (HttpWebResponse)req.GetResponse();
-            Stream stream = res.GetResponseStream();
-            var reader = new StreamReader(stream, Encoding.UTF8);
-            var jsonText = reader.ReadToEnd();
-            res.Close();
-            reader.Close();
-            return JObject.Parse(jsonText);
-        }
-
-        public JObject Get(string parameters,
-                                   string domain = null,
-                                   bool cookies = false)
-        {
-            if (domain == null)
-                domain = DefaultDomain;
-
-            var uri = domain + "/w/api.php?format=json&maxlag=2&" + parameters;
-            Console.WriteLine("GET {0}", uri);
-
-            var req = PrepareRequest(uri);
-            if (cookies)
-            {
-                if (Cookies == null)
-                    Cookies = new CookieContainer();
-                req.CookieContainer = Cookies;
-            }
-
-            var json = GetResponseJson(req);
             if (json ["error"] != null && (string)json ["error"] ["code"] == "maxlag")
             {
                 Console.WriteLine("Maxlag: Sleeping for 5 sec...");
@@ -93,7 +55,7 @@ namespace SvwiktSuite
                                    bool cookies = false)
         {
             return Get(
-                EncodeParameters(parameters),
+                NetUtils.EncodeParameters(parameters),
                 domain: domain,
                 cookies: cookies);
         }
@@ -107,54 +69,33 @@ namespace SvwiktSuite
                                     bool cookies = true)
         {
             return Post(
-                EncodeParameters(parameters),
+                NetUtils.EncodeParameters(parameters),
                 domain: domain,
                 action: action,
                 showAllData: showAllData,
                 cookies: cookies);
         }
 
-        public JObject Post(string data,
-                                    string domain = null,
-                                    string action = null,
-                                    bool showAllData = false,
-                                    bool cookies = true,
-                                    string uriAppend = null)
+        public JObject Post(
+            string data,
+            string domain = null,
+            string action = null,
+            bool showAllData = false,
+            bool cookies = true,
+            string uriAppend = null)
         {
-            if (domain == null)
-                domain = DefaultDomain;
+            string uri = domain == null ? "" : domain;
+            uri += "/w/api.php?format=json&maxlag=2";
 
-            var uri = domain + "/w/api.php?format=json&maxlag=2";
             if (action != null)
                 uri += "&action=" + action;
-            if (uriAppend != null)
-                uri += "&" + uriAppend;
-            var req = PrepareRequest(uri);
-            if (cookies)
-            {
-                if (Cookies == null)
-                    Cookies = new CookieContainer();
-                req.CookieContainer = Cookies;
-            }
-            req.Method = "POST";
-            req.ContentType = "application/x-www-form-urlencoded";
 
-            Console.WriteLine(
-                "POST {0} (data: {1})",
-                uri,
-                showAllData ? data : Regex.Replace(
-                    data,
-                    @"((^|&)[^=]*)=[^&]+",
-                    "$1=..."
-            )
-            );
-            byte[] postData = Encoding.ASCII.GetBytes(data);
-            req.ContentLength = postData.Length;
-            Stream stream = req.GetRequestStream();
-            stream.Write(postData, 0, postData.Length);
-            stream.Close();
+            var json = netUtils.Post(
+                uri: uri,
+                data: data,
+                cookies: cookies,
+                showAllData: showAllData);
 
-            var json = GetResponseJson(req);
             if (json ["error"] != null && (string)json ["error"] ["code"] == "maxlag")
             {
                 Console.WriteLine("Maxlag: Sleeping for 5 sec...");
