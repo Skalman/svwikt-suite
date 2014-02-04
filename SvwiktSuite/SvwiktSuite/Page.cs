@@ -1,61 +1,31 @@
 using System;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace SvwiktSuite
 {
     public class Page
     {
-        protected JToken Json;
-        protected string _text, _title, _timestamp;
-
         public Page(JToken json)
+            : this(
+                title: (string)json ["title"],
+                text: (string)json ["revisions"] [0] ["*"] + "\n",
+                timestamp: (string)json ["revisions"] [0] ["timestamp"])
         {
-            Json = json;
-            _text = null;
-            _title = null;
-            _timestamp = null;
         }
 
         public Page(string title, string text, string timestamp = "")
         {
-            _text = text;
-            _title = title;
-            _timestamp = timestamp;
+            Text = text;
+            Title = title;
+            Timestamp = timestamp;
         }
 
-        public string Text
-        {
-            get
-            {
-                if (_text == null)
-                    _text = (string)Json ["revisions"] [0] ["*"] + "\n";
-                return _text;
-            }
-            set
-            {
-                _text = value;
-            }
-        }
+        public string Text { get; set; }
 
-        public string Title
-        {
-            get
-            {
-                if (_title == null)
-                    _title = (string)Json ["title"];
-                return _title;
-            }
-        }
+        public string Title { get; private set; }
 
-        public string Timestamp
-        {
-            get
-            {
-                if (_timestamp == null)
-                    _timestamp = (string)Json ["revisions"] [0] ["timestamp"];
-                return _timestamp;
-            }
-        }
+        public string Timestamp { get; private set; }
 
         public override string ToString()
         {
