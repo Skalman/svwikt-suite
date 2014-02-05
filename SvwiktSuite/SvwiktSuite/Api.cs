@@ -15,9 +15,12 @@ namespace SvwiktSuite
         protected NetUtils netUtils;
 
         public Api(
-            string defaultDomain,
+            string defaultDomain = null,
             string userAgent = null)
         {
+            if (defaultDomain == null)
+                defaultDomain = "https://sv.wiktionary.org";
+
             netUtils = new NetUtils(
                 defaultUri: defaultDomain,
                 userAgent: userAgent);
