@@ -91,6 +91,7 @@
     <Compile Include="NetUtils.cs" />
     <Compile Include="ToolLabsApi.cs" />
     <Compile Include="PageInflections.cs" />
+    <Compile Include="WikitextUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

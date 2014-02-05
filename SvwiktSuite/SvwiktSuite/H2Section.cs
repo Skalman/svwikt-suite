@@ -8,16 +8,23 @@ namespace SvwiktSuite
 {
     public class H2Section
     {
-        public H2Section(string text)
+        public H2Section(string pageTitle, string text)
         {
+            PageTitle = pageTitle;
             Text = text;
         }
 
-        public H2Section(string header, IList<H3Section> h3s)
+        public H2Section(string pageTitle, string header, IList<H3Section> h3s)
         {
+            PageTitle = pageTitle;
             Header = header;
             H3Sections = h3s;
         }
+
+        /// <summary>
+        /// Page title of the page that this section belongs to. May be null.
+        /// </summary>
+        public string PageTitle { get; set; }
 
         public string Header { get; set; }
 
@@ -60,7 +67,7 @@ namespace SvwiktSuite
                 Header = sections [0];
                 H3Sections = new List<H3Section>(
                     from section in sections.Skip(1)
-                    select new H3Section(section)
+                    select new H3Section(PageTitle, section)
                 );
             }
         }

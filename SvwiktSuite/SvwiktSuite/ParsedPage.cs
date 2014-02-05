@@ -7,14 +7,21 @@ namespace SvwiktSuite
 {
     public class ParsedPage
     {
-        protected string _title, _timestamp;
+        public ParsedPage(Page page)
+            : this(page.Title, page.Text, page.Timestamp)
+        {
+        }
 
         public ParsedPage(string title, string text, string timestamp = "")
         {
-            _title = title;
-            _timestamp = timestamp;
+            Title = title;
+            Timestamp = timestamp;
             Text = text;
         }
+
+        public string Title { get; set; }
+
+        public string Timestamp { get; set; }
 
         public string Header { get; set; }
 
@@ -39,7 +46,7 @@ namespace SvwiktSuite
                 // Find footer.
                 Match m = Regex.Match(
                     value,
-                    @"^(==Källor==\n" +
+                    @"^(==(Källor|Källa)==\n" +
                     @"|\{\{STANDARDSORTERING:" +
                     @"|\[\[[a-z]{2,6}(\-[a-z]{2,12})*:[^\]]+\]\]\n)",
                     RegexOptions.Multiline
@@ -56,7 +63,7 @@ namespace SvwiktSuite
                 Header = sections [0];
                 H2Sections = new List<H2Section>(
                     from section in sections.Skip(1)
-                    select new H2Section(section)
+                    select new H2Section(Title, section)
                 );
             }
         }
