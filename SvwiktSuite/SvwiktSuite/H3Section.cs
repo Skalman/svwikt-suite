@@ -8,10 +8,15 @@ namespace SvwiktSuite
 {
     public class H3Section
     {
+        protected string _text,
+            _header, _h3Template, _boldLine, _pronunciation,
+            _commonInfo, _translationSection, _footer;
+        protected IList<string> _definitions;
+
         public H3Section(string pageTitle, string text)
         {
             PageTitle = pageTitle;
-            Text = text;
+            _text = text;
         }
 
         /// <summary>
@@ -23,42 +28,138 @@ namespace SvwiktSuite
         /// The beginning of the section, starting with ===Header===
         /// until the H3 template.
         /// </summary>
-        public string Header { get; set; }
+        public string Header
+        {
+            get
+            {
+                Parse();
+                return _header;
+            }
+            set
+            {
+                Parse();
+                _header = value;
+            }
+        }
 
         /// <summary>
         /// Any H3 templates and wikitext until the bold line.
         /// </summary>
-        public string H3Template { get; set; }
+        public string H3Template
+        {
+            get
+            {
+                Parse();
+                return _h3Template;
+            }
+            set
+            {
+                Parse();
+                _h3Template = value;
+            }
+        }
 
         /// <summary>
         /// The bold line, until the pronunciation guide or definitions begin.
         /// </summary>
-        public string BoldLine { get; set; }
+        public string BoldLine
+        {
+            get
+            {
+                Parse();
+                return _boldLine;
+            }
+            set
+            {
+                Parse();
+                _boldLine = value;
+            }
+        }
 
         /// <summary>
         /// The pronunciation guide, if any.
         /// </summary>
-        public string Pronunciation { get; set; }
+        public string Pronunciation
+        {
+            get
+            {
+                Parse();
+                return _pronunciation;
+            }
+            set
+            {
+                Parse();
+                _pronunciation = value;
+            }
+        }
 
         /// <summary>
         /// List of definitions.
         /// </summary>
-        public IList<string> Definitions { get; set; }
+        public IList<string> Definitions
+        {
+            get
+            {
+                Parse();
+                return _definitions;
+            }
+            set
+            {
+                Parse();
+                _definitions = value;
+            }
+        }
 
         /// <summary>
         /// Common info after the definitions and before translations.
         /// </summary>
-        public string CommonInfo { get; set; }
+        public string CommonInfo
+        {
+            get
+            {
+                Parse();
+                return _commonInfo;
+            }
+            set
+            {
+                Parse();
+                _commonInfo = value;
+            }
+        }
 
         /// <summary>
         /// The translation section
         /// </summary>
-        public string TranslationSection { get; set; }
+        public string TranslationSection
+        {
+            get
+            {
+                Parse();
+                return _translationSection;
+            }
+            set
+            {
+                Parse();
+                _translationSection = value;
+            }
+        }
 
         /// <summary>
         /// Text after the translation section.
         /// </summary>
-        public string Footer { get; set; }
+        public string Footer
+        {
+            get
+            {
+                Parse();
+                return _footer;
+            }
+            set
+            {
+                Parse();
+                _footer = value;
+            }
+        }
 
         public string HeaderName
         {
@@ -79,28 +180,57 @@ namespace SvwiktSuite
         {
             get
             {
-                return
-                    Header +
-                    H3Template +
-                    BoldLine +
-                    Pronunciation +
-                    string.Join("", Definitions) +
-                    CommonInfo +
-                    TranslationSection +
-                    Footer;
+                if (_text != null)
+                    return _text;
+                else
+                    return
+                        Header +
+                        H3Template +
+                        BoldLine +
+                        Pronunciation +
+                        string.Join("", Definitions) +
+                        CommonInfo +
+                        TranslationSection +
+                        Footer;
             }
             set
             {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                // Unparse.
+                if (_text == null)
+                {
+                    _header =
+                        _h3Template =
+                        _boldLine =
+                        _pronunciation =
+                        _commonInfo =
+                        _translationSection =
+                        _footer = null;
+                    _definitions = null;
+                }
+
+                _text = value;
+            }
+        }
+
+        protected void Parse()
+        {
+            if (_text != null)
+            {
+                var tmp = _text;
+                _text = null;
                 // Split into two parts: before definitions, and def+after.
-                var pos = WikitextUtils.VanillaIndexOf("\n#", value);
+                var pos = WikitextUtils.VanillaIndexOf("\n#", tmp);
                 if (pos == -1)
                 {
-                    BeforeDefinitions = value;
+                    BeforeDefinitions = tmp;
                     DefinitionsAndAfter = "";
                 } else
                 {
-                    BeforeDefinitions = value.Substring(0, pos + 1);
-                    DefinitionsAndAfter = value.Substring(pos + 1);
+                    BeforeDefinitions = tmp.Substring(0, pos + 1);
+                    DefinitionsAndAfter = tmp.Substring(pos + 1);
                 }
             }
         }
@@ -115,10 +245,10 @@ namespace SvwiktSuite
                 // Find pronunciation.
                 var pos = WikitextUtils.VanillaIndexOf("\n*", text);
                 if (pos == -1)
-                    Pronunciation = "";
+                    _pronunciation = "";
                 else
                 {
-                    Pronunciation = text.Substring(pos + 1);
+                    _pronunciation = text.Substring(pos + 1);
                     text = text.Substring(0, pos + 1);
                 }
 
@@ -139,10 +269,10 @@ namespace SvwiktSuite
                     }
                 }
                 if (pos == -1)
-                    BoldLine = "";
+                    _boldLine = "";
                 else
                 {
-                    BoldLine = text.Substring(pos + 1);
+                    _boldLine = text.Substring(pos + 1);
                     text = text.Substring(0, pos + 1);
                 }
 
@@ -150,15 +280,15 @@ namespace SvwiktSuite
                 pos = text.IndexOf("\n{{");
 
                 if (pos == -1)
-                    H3Template = "";
+                    _h3Template = "";
                 else
                 {
-                    H3Template = text.Substring(pos + 1);
+                    _h3Template = text.Substring(pos + 1);
                     text = text.Substring(0, pos + 1);
                 }
 
                 // The rest is the header.
-                Header = text;
+                _header = text;
             }
         }
 
@@ -171,25 +301,25 @@ namespace SvwiktSuite
 
                 // Find definitions.
                 var pos = 0;
-                Definitions = new List<string>();
+                _definitions = new List<string>();
 
                 do
                 {
                     var endPos = WikitextUtils.VanillaIndexOf("\n", text, pos);
                     var line = text.Substring(pos, endPos - pos + 1);
                     if (!line.StartsWith("#:"))
-                        Definitions.Add(line);
+                        _definitions.Add(line);
                     else
-                        Definitions [Definitions.Count - 1] += line;
+                        _definitions [Definitions.Count - 1] += line;
 
                     pos = endPos + 1;
                 } while (pos < text.Length && text[pos] == '#');
 
                 if (pos < text.Length)
                 {
-                    CommonInfo = "";
-                    TranslationSection = "";
-                    Footer = "";
+                    _commonInfo = "";
+                    _translationSection = "";
+                    _footer = "";
                     return;
                 }
                 text = text.Substring(pos);
@@ -198,24 +328,24 @@ namespace SvwiktSuite
                 pos = text.IndexOf("\n====Översättningar====\n");
                 if (pos == -1)
                 {
-                    CommonInfo = text;
-                    TranslationSection = "";
-                    Footer = "";
+                    _commonInfo = text;
+                    _translationSection = "";
+                    _footer = "";
                     return;
                 }
-                CommonInfo = text.Substring(0, pos + 1);
+                _commonInfo = text.Substring(0, pos + 1);
                 text = text.Substring(pos + 1);
 
                 // Find footer.
                 pos = text.IndexOf("\n====");
                 if (pos == -1)
                 {
-                    TranslationSection = text;
-                    Footer = "";
+                    _translationSection = text;
+                    _footer = "";
                 } else
                 {
-                    TranslationSection = text.Substring(0, pos + 1);
-                    Footer = text.Substring(pos + 1);
+                    _translationSection = text.Substring(0, pos + 1);
+                    _footer = text.Substring(pos + 1);
                 }
             }
         }
