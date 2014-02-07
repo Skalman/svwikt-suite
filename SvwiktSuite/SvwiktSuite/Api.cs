@@ -26,7 +26,6 @@ namespace SvwiktSuite
                 userAgent: userAgent);
         }
 
-
         public JObject Get(
             string parameters,
             string domain = null,
@@ -251,6 +250,26 @@ namespace SvwiktSuite
             throw new Exception("Could not retrieve page '" + title + "'");
         }
 
+        public IDictionary<string, Page> GetPages(IEnumerable<string> titles)
+        {
+            var response = Get(
+                new Dictionary<string, string> {
+                    {"action", "query"},
+                    {"titles", string.Join("|", titles)},
+                    {"prop", "revisions"},
+                    {"rvprop", "timestamp|content"},
+                }
+            );
+            var res = new Dictionary<string, Page>();
+            var pages = (IDictionary<string, JToken>)response ["query"] ["pages"];
+            foreach (var page in pages)
+            {
+                var p = new Page(page.Value);
+                res [p.Title] = p;
+            }
+            return res;
+        }
+
         public IDictionary<string, bool> PagesExist(
             string langCode, IList<string> pages,
             IDictionary<string, bool> addTo = null)
@@ -388,6 +407,31 @@ namespace SvwiktSuite
                 }
                 pagesLeft -= step;
             }
+        }
+
+        public string[] ExpandTemplates(
+            IEnumerable<string> wikitext,
+            bool includeComments = true)
+        {
+            var separator = "\n\n<expand templates separator>\n\n";
+            var expanded = ExpandTemplates(
+                string.Join(separator, wikitext),
+                includeComments: includeComments);
+
+            return Regex.Split(expanded, separator);
+        }
+
+        public string ExpandTemplates(
+            string wikitext,
+            bool includeComments = true)
+        {
+            var json = Get(new Dictionary<string, string> {
+                {"action", "expandtemplates"},
+                {"text", wikitext},
+                {includeComments ? "includecomments" : "", "1"},
+            }
+            );
+            return (string)json ["expandtemplates"] ["*"];
         }
     }
 }
