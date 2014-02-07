@@ -33,10 +33,12 @@ namespace SvwiktSuite
             if (parameters == null && parameters.Count == 0)
                 return "";
 
-            IEnumerable<string> list = parameters.Select(
-                p => Uri.EscapeDataString(p.Key) +
-                "=" + Uri.EscapeDataString(p.Value)
-            );
+            IEnumerable<string> list =
+                from p in parameters
+                where p.Key != ""
+                select Uri.EscapeDataString(p.Key) +
+                "=" + Uri.EscapeDataString(p.Value);
+
             return string.Join("&", list);
         }
 
