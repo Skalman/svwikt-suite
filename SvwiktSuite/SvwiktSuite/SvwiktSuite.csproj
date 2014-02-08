@@ -64,6 +64,7 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>Json50r8\Bin\Net35\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="gtk-gui\gui.stetic">
@@ -93,6 +94,7 @@
     <Compile Include="PageInflections.cs" />
     <Compile Include="WikitextUtils.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Dump.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
