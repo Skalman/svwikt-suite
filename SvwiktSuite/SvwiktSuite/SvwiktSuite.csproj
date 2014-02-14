@@ -73,12 +73,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="gtk-gui\generated.cs" />
-    <Compile Include="MainWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="gtk-gui\SvwiktSuite.MainWindow.cs" />
     <Compile Include="Api.cs" />
-    <Compile Include="SignInWindow.cs" />
+    <Compile Include="Presentation\SignInWindow.cs" />
     <Compile Include="gtk-gui\SvwiktSuite.SignInWindow.cs" />
     <Compile Include="DumpReader.cs" />
     <Compile Include="Language.cs" />
@@ -94,6 +93,7 @@
     <Compile Include="WikitextUtils.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Dump.cs" />
+    <Compile Include="Presentation\MainWindow.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -106,4 +106,7 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <Folder Include="Presentation\" />
+  </ItemGroup>
 </Project>
