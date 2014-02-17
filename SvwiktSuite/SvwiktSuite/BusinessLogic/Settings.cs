@@ -11,9 +11,9 @@ namespace SvwiktSuite
     /// </summary>
     public class Settings
     {
-        protected Api api;
+        protected MediaWikiApi api;
 
-        public Settings(Api api)
+        public Settings(MediaWikiApi api)
         {
             this.api = api;
         }

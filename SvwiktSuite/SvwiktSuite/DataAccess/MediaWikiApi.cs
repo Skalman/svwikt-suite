@@ -10,11 +10,11 @@ using Newtonsoft.Json.Linq;
 
 namespace SvwiktSuite
 {
-    public class Api
+    public class MediaWikiApi
     {
         protected NetUtils netUtils;
 
-        public Api(
+        public MediaWikiApi(
             string defaultDomain = null,
             string userAgent = null)
         {

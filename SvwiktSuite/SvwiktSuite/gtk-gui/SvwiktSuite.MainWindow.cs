@@ -417,6 +417,8 @@ namespace SvwiktSuite
 			this.btnUpdate.HasDefault = true;
 			this.Show ();
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
+			this.entryStart.Changed += new global::System.EventHandler (this.OnEntryStartChanged);
+			this.entryMax.Changed += new global::System.EventHandler (this.OnEntryMaxChanged);
 			this.comboboxSource.Changed += new global::System.EventHandler (this.OnComboboxSourceChanged);
 			this.buttonSpecifySource.Clicked += new global::System.EventHandler (this.OnButtonSpecifySourceClicked);
 			this.buttonCancel.Clicked += new global::System.EventHandler (this.OnButtonCancelClicked);

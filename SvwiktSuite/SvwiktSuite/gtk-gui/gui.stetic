@@ -188,6 +188,7 @@ Live</property>
                             <property name="IsEditable">True</property>
                             <property name="ActivatesDefault">True</property>
                             <property name="InvisibleChar">•</property>
+                            <signal name="Changed" handler="OnEntryMaxChanged" />
                           </widget>
                           <packing>
                             <property name="TopAttach">2</property>
@@ -213,6 +214,7 @@ Live</property>
                             <property name="IsEditable">True</property>
                             <property name="ActivatesDefault">True</property>
                             <property name="InvisibleChar">•</property>
+                            <signal name="Changed" handler="OnEntryStartChanged" />
                           </widget>
                           <packing>
                             <property name="LeftAttach">1</property>

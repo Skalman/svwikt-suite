@@ -8,7 +8,7 @@ namespace SvwiktSuite
 {
     public class TranslationLinkUpdater
     {
-        public delegate bool PerformSave(
+        public delegate bool SaveCallback(
             string title,
             string summary,
             out string changedSummary,
@@ -18,7 +18,7 @@ namespace SvwiktSuite
 
         public delegate void PageDoneCallback(string title);
 
-        public delegate void Log(string message);
+        public delegate void LogCallback(string message);
 
         private void LogWrite(string format, params object[] args)
         {
@@ -38,17 +38,17 @@ namespace SvwiktSuite
         {
         }
 
-        protected Api Api;
-        protected PerformSave saveCallback;
+        protected MediaWikiApi Api;
+        protected SaveCallback saveCallback;
         protected PageDoneCallback pageDoneCallback;
-        protected Log logCallback;
+        protected LogCallback logCallback;
         protected Language language;
 
         public TranslationLinkUpdater(
-            Api api,
-            PerformSave saveCallback = null,
+            MediaWikiApi api,
+            SaveCallback saveCallback = null,
             PageDoneCallback pageDoneCallback = null,
-            Log logCallback = null)
+            LogCallback logCallback = null)
         {
             Api = api;
             if (saveCallback == null)
@@ -175,7 +175,7 @@ namespace SvwiktSuite
                             LogWrite("{0}: Saved ({1})",
                                      page.Title,
                                      summary);
-                        } catch (Api.EditConflictException)
+                        } catch (MediaWikiApi.EditConflictException)
                         {
                             LogWrite("{0}: Edit conflict, skipped ({1})",
                                       page.Title,

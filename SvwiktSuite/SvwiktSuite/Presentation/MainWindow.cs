@@ -8,104 +8,52 @@ namespace SvwiktSuite
 {
     public partial class MainWindow: Gtk.Window
     {
-        /// <summary>
-        /// Testmetod som läser från databas.
-        /// </summary>
-        public static void ReadFromDbTest()
-        {
-            //skapa connection string
-            string folder = "../../data";
-            string connectionString = "URI=file:" + System.IO.Path.Combine(folder, "test.db");
+        private EditController editCtrl;
+        private EditController.OptionsStruct editOpts;
 
-            //skapa connection
-            using (SqliteConnection db = new SqliteConnection(connectionString))
-            {
-                //SQLiteConnection db = new SQLiteConnection(connectionString);
-                db.Open();
-
-                //skapa Command
-                SqliteCommand cmd = db.CreateCommand();
-
-                //SQL query
-                cmd.CommandText = "SELECT pagename, tmpl_syntax FROM main";
-
-                //läs de första 100 raderna från databasen och skriv ut dem i konsollen
-                SqliteDataReader reader = cmd.ExecuteReader();
-                int count = 0;
-                while (reader.Read() && count < 100)
-                {
-                    string column1Data = reader.GetString(0);
-                    string column2Data = reader.GetString(1);
-                    Console.WriteLine(String.Format("{0} : {1}", column1Data, column2Data));
-                    count++;
-                }
-
-                //rensa upp
-                reader.Close();
-                reader = null;
-                cmd.Dispose();
-                cmd = null;
-                //db.Close();
-                //db = null;
-            }
-        }
-
-        private IList<Thread> runningThreads;
-        private Api api;
-
-        public MainWindow(): base (Gtk.WindowType.Toplevel)
+        public MainWindow(
+            EditController editController)
+            : base (Gtk.WindowType.Toplevel)
         {
             Build();
-            runningThreads = new List<Thread>();
-            api = new Api(
-                "https://sv.wiktionary.org",
-                "C# app by https://sv.wiktionary.org/wiki/User:Skalman");
+            editCtrl = editController;
+            editOpts = editCtrl.Options;
+            editOpts.OnLog = Log;
+            editOpts.OnPageDone = PageDoneCallback;
+            editOpts.OnSave = SaveCallback;
+            editOpts.OnEditDone = EditDoneCallback;
         }
 
         protected void OnDeleteEvent(object sender, DeleteEventArgs a)
         {
             Application.Quit();
             a.RetVal = true;
-            foreach (var thread in runningThreads)
-            {
-                if (thread.IsAlive)
-                    thread.Interrupt();
-            }
-            runningThreads = new List<Thread>();
+            editCtrl.Quit();
         }
 
         protected void OnBtnUpdateClicked(object sender, EventArgs e)
         {
             SelectSource(true);
-            if (api.SignedInUser == null)
+            try
             {
-                var signInWindow = new SignInWindow(api);
+                editCtrl.Edit();
+
+                btnUpdate.Sensitive = false;
+                buttonCancel.Sensitive = true;
+                buttonCancel.GrabFocus();
+                btnUpdate.HasDefault = false;
+                buttonApproveChange.HasDefault = true;
+
+            } catch (MediaWikiApi.NotLoggedInException)
+            {
+                var signInWindow = new SignInWindow(editCtrl);
                 signInWindow.Show();
                 signInWindow.Destroyed += delegate(object sender2, EventArgs e2)
                 {
-                    if (api.SignedInUser != null)
-                    {
+                    if (editCtrl.IsLoggedIn)
                         OnBtnUpdateClicked(sender2, e2);
-                    }
                 };
-                return;
             }
-            Console.WriteLine("signed in as {0}", api.SignedInUser);
-
-            Thread thread = new Thread(new ThreadStart(Update));
-            btnUpdate.Sensitive = false;
-            buttonCancel.Sensitive = true;
-            buttonCancel.GrabFocus();
-            btnUpdate.HasDefault = false;
-            buttonApproveChange.HasDefault = true;
-
-            runningThreads.Add(thread);
-            thread.Start();
-        }
-
-        protected void LogAll(string message, params object[] args)
-        {
-            Log(string.Format(message, args));
         }
 
         protected void Log(string message)
@@ -124,80 +72,6 @@ namespace SvwiktSuite
             Console.WriteLine(message);
         }
 
-        protected void Update()
-        {
-            try
-            {
-                IEnumerable<Page> pages;
-                var maxPages = int.Parse(entryMax.Text);
-                var startAt = entryStart.Text;
-                if (source == "dump")
-                {
-                    var dr = new DumpReader(dumpFilename);
-                    pages = dr.Pages(
-                        namespaces: new SortedSet<int>() {0},
-                        startAt: startAt,
-                        maxPages: maxPages
-                    );
-                } else if (source == "live")
-                {
-                    pages = api.PagesInCategory(
-                    "Svenska/Alla uppslag",
-                    ns: 0,
-                    step: 250,
-                    maxPages: maxPages,
-                    startAt: startAt
-                    );
-                } else if (source == "titles")
-                {
-                    // TODO
-                    // pages = Api.GetPages();
-                    throw new NotImplementedException();
-                } else
-                {
-                    throw new Exception("Internal error: source not defined");
-                }
-                var tl = new TranslationLinkUpdater(
-                    api: api,
-                    saveCallback: SaveCallback,
-                    pageDoneCallback: PageDoneCallback,
-                    logCallback: Log);
-                tl.Update(pages: pages);
-            } catch (ThreadInterruptedException)
-            {
-                Gtk.Application.Invoke(delegate
-                {
-                    entrySummary.Text = "";
-                    textviewBefore.Buffer.Text = "";
-                    textviewAfter.Buffer.Text = "";
-                    vboxConfirmEdit.Sensitive = false;
-                }
-                );
-
-                Console.WriteLine("Thread interrupted [no worries]");
-            } catch (Language.LanguageException ex)
-            {
-                LogAll("Language exception: {0}", ex.Message);
-            } catch (TranslationLinkUpdater.SortException ex)
-            {
-                LogAll("Sort exception: {0}", ex.Message);
-            } catch (Api.NotLoggedInException)
-            {
-                Log("Abort: Not logged in!");
-            }
-            Console.WriteLine("Thread finished");
-
-            Gtk.Application.Invoke(delegate
-            {
-                buttonCancel.Sensitive = false;
-                btnUpdate.Sensitive = true;
-                btnUpdate.GrabFocus();
-                btnUpdate.HasDefault = true;
-                buttonApproveChange.HasDefault = false;
-            }
-            );
-        }
-
         protected void PageDoneCallback(string title, bool addExclamation=true)
         {
             Gtk.Application.Invoke(delegate
@@ -206,6 +80,24 @@ namespace SvwiktSuite
                     entryStart.Text = title + "!";
                 else
                     entryStart.Text = title;
+            }
+            );
+        }
+
+        protected void EditDoneCallback()
+        {
+            Gtk.Application.Invoke(delegate
+            {
+                entrySummary.Text = "";
+                textviewBefore.Buffer.Text = "";
+                textviewAfter.Buffer.Text = "";
+                vboxConfirmEdit.Sensitive = false;
+
+                buttonCancel.Sensitive = false;
+                btnUpdate.Sensitive = true;
+                btnUpdate.GrabFocus();
+                btnUpdate.HasDefault = true;
+                buttonApproveChange.HasDefault = false;
             }
             );
         }
@@ -259,11 +151,7 @@ namespace SvwiktSuite
 
         protected void OnButtonCancelClicked(object sender, EventArgs e)
         {
-            foreach (var thread in runningThreads)
-            {
-                thread.Interrupt();
-            }
-            runningThreads = new List<Thread>();
+            editCtrl.InterruptEdit();
         }
 
         protected void OnButtonSkipClicked(object sender, EventArgs e)
@@ -286,15 +174,12 @@ namespace SvwiktSuite
             SelectSource(true);
         }
 
-        string source = null;
-        string dumpFilename = null;
-
         protected void SelectSource(bool useExistingSelection)
         {
             if (comboboxSource.Active == 0)
             {
-                source = "dump";
-                if (!useExistingSelection || dumpFilename == null)
+                editOpts.Source = EditController.SourceType.Dump;
+                if (!useExistingSelection || editOpts.DumpFilename == null)
                 {
                     var fc = new FileChooserDialog(
                     "Välj dump-fil",
@@ -304,64 +189,43 @@ namespace SvwiktSuite
                     "Öppna", ResponseType.Accept);
 
                     if (fc.Run() == (int)ResponseType.Accept)
-                    {
-                        dumpFilename = fc.Filename;
-                    }
+                        editOpts.DumpFilename = fc.Filename;
+
                     fc.Destroy();
                 }
 
-                if (dumpFilename == null)
+                if (editOpts.DumpFilename == null)
                 {
                     buttonSpecifySource.Label = "...";
                 } else
                 {
-                    if (dumpFilename.Length < 18)
-                        buttonSpecifySource.Label = dumpFilename;
+                    if (editOpts.DumpFilename.Length < 18)
+                        buttonSpecifySource.Label = editOpts.DumpFilename;
                     else
                         buttonSpecifySource.Label = "..." +
-                            dumpFilename.Substring(dumpFilename.Length - 18);
+                            editOpts.DumpFilename.Substring(editOpts.DumpFilename.Length - 18);
                 }
                 buttonSpecifySource.Sensitive = false;
             } else if (comboboxSource.Active == 1)
             {
-                // source = "titles";
+                // editController.Options.Source = EditController.SourceType.Titles;
                 throw new NotImplementedException();
             } else if (comboboxSource.Active == 2)
             {
-                source = "live";
+                editOpts.Source = EditController.SourceType.Live;
                 buttonSpecifySource.Label = "Från kategori";
                 buttonSpecifySource.Sensitive = false;
             }
         }
 
-        protected IEnumerable<Page> GetPages()
+        protected void OnEntryMaxChanged(object sender, EventArgs e)
         {
-            if (source == "dump")
-            {
-                var dr = new DumpReader(dumpFilename);
-                return dr.Pages(namespaces: new SortedSet<int>() {0});
-            } else
-            {
-                throw new NotImplementedException();
-            }
-
-            /*
-            var i = 0;
-            var pages = dr.Pages (namespaces: new SortedSet<int> () {0});
-
-            foreach (var page in pages) {
-                if (i % 10000 == 0) {
-                    var now = DateTime.Now;
-                    Console.WriteLine (
-                        "title={0}  |  timestamp={1} | {2}",
-                        page.Title, page.Timestamp,
-
-                        now);
-                }
-                i++;
-            }
-            */
+            editOpts.MaxPages = int.Parse(entryMax.Text);
         }
 
+        protected void OnEntryStartChanged(object sender, EventArgs e)
+        {
+            editOpts.StartAt = entryStart.Text;
+        }
     }
 }
