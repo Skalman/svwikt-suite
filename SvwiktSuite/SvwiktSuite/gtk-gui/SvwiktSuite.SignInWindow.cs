@@ -20,6 +20,7 @@ namespace SvwiktSuite
 			// Widget SvwiktSuite.SignInWindow
 			this.Name = "SvwiktSuite.SignInWindow";
 			this.Title = global::Mono.Unix.Catalog.GetString ("Logga in");
+			this.Icon = global::Gdk.Pixbuf.LoadFromResource ("SvwiktSuite.icon.png");
 			this.WindowPosition = ((global::Gtk.WindowPosition)(4));
 			// Internal child SvwiktSuite.SignInWindow.VBox
 			global::Gtk.VBox w1 = this.VBox;

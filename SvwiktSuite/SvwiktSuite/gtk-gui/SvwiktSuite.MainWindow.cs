@@ -51,6 +51,7 @@ namespace SvwiktSuite
 			// Widget SvwiktSuite.MainWindow
 			this.Name = "SvwiktSuite.MainWindow";
 			this.Title = global::Mono.Unix.Catalog.GetString ("Svwikt suite");
+			this.Icon = global::Gdk.Pixbuf.LoadFromResource ("SvwiktSuite.icon.png");
 			this.WindowPosition = ((global::Gtk.WindowPosition)(4));
 			// Container child SvwiktSuite.MainWindow.Gtk.Container+ContainerChild
 			this.notebookMain = new global::Gtk.Notebook ();

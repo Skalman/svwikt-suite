@@ -11,6 +11,7 @@
   <widget class="Gtk.Window" id="SvwiktSuite.MainWindow" design-size="733 500">
     <property name="MemberName" />
     <property name="Title" translatable="yes">Svwikt suite</property>
+    <property name="Icon">resource:SvwiktSuite.icon.png</property>
     <property name="WindowPosition">CenterOnParent</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
@@ -565,6 +566,7 @@ Live</property>
   <widget class="Gtk.Dialog" id="SvwiktSuite.SignInWindow" design-size="307 218">
     <property name="MemberName" />
     <property name="Title" translatable="yes">Logga in</property>
+    <property name="Icon">resource:SvwiktSuite.icon.png</property>
     <property name="WindowPosition">CenterOnParent</property>
     <property name="Buttons">2</property>
     <property name="HelpButton">False</property>
