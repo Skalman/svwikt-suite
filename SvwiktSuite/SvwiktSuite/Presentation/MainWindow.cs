@@ -22,6 +22,9 @@ namespace SvwiktSuite
             editOpts.OnPageDone = PageDoneCallback;
             editOpts.OnSave = SaveCallback;
             editOpts.OnEditDone = EditDoneCallback;
+
+            OnEntryStartChanged(null, null);
+            OnEntryMaxChanged(null, null);
         }
 
         protected void OnDeleteEvent(object sender, DeleteEventArgs a)
@@ -220,7 +223,17 @@ namespace SvwiktSuite
 
         protected void OnEntryMaxChanged(object sender, EventArgs e)
         {
-            editOpts.MaxPages = int.Parse(entryMax.Text);
+            int val;
+
+            if (entryMax.Text == "" || (int.TryParse(entryMax.Text, out val) && val >= -1))
+            {
+                editOpts.MaxPages = entryMax.Text == "" ? -1 : val;
+                entryMax.ModifyBase(StateType.Normal);
+            } else
+            {
+                editOpts.MaxPages = 0;
+                entryMax.ModifyBase(StateType.Normal, new Gdk.Color(255, 204, 204));
+            }
         }
 
         protected void OnEntryStartChanged(object sender, EventArgs e)
