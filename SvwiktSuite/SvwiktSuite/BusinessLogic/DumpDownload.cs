@@ -28,7 +28,7 @@ namespace SvwiktSuite
 		Dec
 	}
 
-	public class Dump
+	public class DumpDownload
 	{
 		public DateTime CurrentDumpTime { get; private set; }
 		public DateTime NewDumpTime { get; private set; }
@@ -37,11 +37,11 @@ namespace SvwiktSuite
 
 		readonly Uri SvwiktDumpInfoUri = new Uri("http://dumps.wikimedia.org/svwiktionary/latest/svwiktionary-latest-pages-articles.xml.bz2-rss.xml");
 
-		public Dump() : this(DateTime.MinValue) 
+		public DumpDownload() : this(DateTime.MinValue) 
 		{
 		}
 
-		public Dump(DateTime currentDumpTime)
+		public DumpDownload(DateTime currentDumpTime)
 		{
 			Initialize();
 		}

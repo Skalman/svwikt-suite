@@ -11,6 +11,7 @@
   <widget class="Gtk.Window" id="SvwiktSuite.MainWindow" design-size="733 500">
     <property name="MemberName" />
     <property name="Title" translatable="yes">Svwikt suite</property>
+    <property name="Icon">resource:SvwiktSuite.icon.png</property>
     <property name="WindowPosition">CenterOnParent</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
@@ -188,6 +189,7 @@ Live</property>
                             <property name="IsEditable">True</property>
                             <property name="ActivatesDefault">True</property>
                             <property name="InvisibleChar">•</property>
+                            <signal name="Changed" handler="OnEntryMaxChanged" />
                           </widget>
                           <packing>
                             <property name="TopAttach">2</property>
@@ -213,6 +215,7 @@ Live</property>
                             <property name="IsEditable">True</property>
                             <property name="ActivatesDefault">True</property>
                             <property name="InvisibleChar">•</property>
+                            <signal name="Changed" handler="OnEntryStartChanged" />
                           </widget>
                           <packing>
                             <property name="LeftAttach">1</property>
@@ -563,6 +566,7 @@ Live</property>
   <widget class="Gtk.Dialog" id="SvwiktSuite.SignInWindow" design-size="307 218">
     <property name="MemberName" />
     <property name="Title" translatable="yes">Logga in</property>
+    <property name="Icon">resource:SvwiktSuite.icon.png</property>
     <property name="WindowPosition">CenterOnParent</property>
     <property name="Buttons">2</property>
     <property name="HelpButton">False</property>

@@ -10,11 +10,11 @@ using Newtonsoft.Json.Linq;
 
 namespace SvwiktSuite
 {
-    public class Api
+    public class MediaWikiApi
     {
         protected NetUtils netUtils;
 
-        public Api(
+        public MediaWikiApi(
             string defaultDomain = null,
             string userAgent = null)
         {
@@ -144,14 +144,13 @@ namespace SvwiktSuite
 
         public void SavePage(
             Page page,
-            string summary,
             bool nocreate=false,
             bool bot=true)
         {
             SavePage(
                 title: page.Title,
                 wikitext: page.Text,
-                summary: summary,
+                summary: page.Summary.Text,
                 nocreate: nocreate,
                 bot: bot,
                 timestamp: page.Timestamp);

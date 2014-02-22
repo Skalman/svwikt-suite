@@ -51,6 +51,7 @@ namespace SvwiktSuite
 			// Widget SvwiktSuite.MainWindow
 			this.Name = "SvwiktSuite.MainWindow";
 			this.Title = global::Mono.Unix.Catalog.GetString ("Svwikt suite");
+			this.Icon = global::Gdk.Pixbuf.LoadFromResource ("SvwiktSuite.icon.png");
 			this.WindowPosition = ((global::Gtk.WindowPosition)(4));
 			// Container child SvwiktSuite.MainWindow.Gtk.Container+ContainerChild
 			this.notebookMain = new global::Gtk.Notebook ();
@@ -417,6 +418,8 @@ namespace SvwiktSuite
 			this.btnUpdate.HasDefault = true;
 			this.Show ();
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
+			this.entryStart.Changed += new global::System.EventHandler (this.OnEntryStartChanged);
+			this.entryMax.Changed += new global::System.EventHandler (this.OnEntryMaxChanged);
 			this.comboboxSource.Changed += new global::System.EventHandler (this.OnComboboxSourceChanged);
 			this.buttonSpecifySource.Clicked += new global::System.EventHandler (this.OnButtonSpecifySourceClicked);
 			this.buttonCancel.Clicked += new global::System.EventHandler (this.OnButtonCancelClicked);

@@ -7,10 +7,10 @@ namespace SvwiktSuite
 {
     public class Language
     {
-        protected Api Api;
+        protected MediaWikiApi Api;
         protected Settings Settings;
 
-        public Language(Api api)
+        public Language(MediaWikiApi api)
         {
             Api = api;
             Settings = new Settings(api);
