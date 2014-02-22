@@ -97,6 +97,7 @@
     <Compile Include="BusinessLogic\EditController.cs" />
     <Compile Include="BusinessLogic\TranslationEditor.cs" />
     <Compile Include="BusinessLogic\IBatchEditor.cs" />
+    <Compile Include="BusinessLogic\FormattingEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

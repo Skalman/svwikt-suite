@@ -94,9 +94,6 @@ namespace SvwiktSuite
             var lastEnd = 0;
             var summaryParts = new SortedSet<string>();
 
-            // Not just translations, but important formatting
-            FormatPage(page);
-
             foreach (var s in GetTranslationSections(page.Title, page.Text))
             {
                 sections.Add(new Section(page.Title, page.Text, lastEnd, s.Start - lastEnd));
@@ -111,43 +108,6 @@ namespace SvwiktSuite
                 page.Text = string.Join("", sections);
                 page.Summary.AddMinor(string.Join("; ", summaryParts));
             }
-        }
-
-        static void FormatPage(Page page)
-        {
-            var wikitext = page.Text;
-            var summary = page.Summary;
-
-            // Added on many pages by User:Pametzma
-            if (wikitext.IndexOf("----") != -1)
-            {
-                var newWikitext = Regex.Replace(wikitext, @"\n+(\{\{nollpos\}\}\n|\-{4,}\n)+\n*", "\n\n");
-                if (wikitext != newWikitext)
-                {
-                    summary.AddMinor("ta bort onödig {{nollpos}} och ----");
-                    wikitext = newWikitext;
-                }
-            }
-
-            if (wikitext.IndexOf("\n=====Översättningar=====\n") != -1)
-            {
-                summary.Add("översättningsrubrik är H4");
-                wikitext = wikitext.Replace("\n=====Översättningar=====\n", "\n====Översättningar====\n");
-            }
-
-            if (wikitext.IndexOf("\n====Översättning====\n") != -1)
-            {
-                summary.Add("'Översättning' > 'Översättningar'");
-                wikitext = wikitext.Replace("\n====Översättning====\n", "\n====Översättningar====\n");
-            }
-
-            if (wikitext.IndexOf("\n====Motsvarande namn på andra språk====\n") != -1)
-            {
-                summary.Add("'Motsvarande namn på andra språk' > 'Översättningar'");
-                wikitext = wikitext.Replace("\n====Motsvarande namn på andra språk====\n", "\n====Översättningar====\n");
-            }
-
-            page.Text = wikitext;
         }
 
         protected void FormatTranslationSection(Section section, ISet<string> summary)
@@ -591,13 +551,6 @@ namespace SvwiktSuite
 
         public static List<Section> GetTranslationSections(string title, string wikitext)
         {
-            if (wikitext.IndexOf("\n=====Översättningar=====\n") != -1)
-                wikitext = wikitext.Replace("\n=====Översättningar=====\n", "\n====Översättningar====\n");
-            if (wikitext.IndexOf("\n====Motsvarande namn på andra språk====\n") != -1)
-                wikitext = wikitext.Replace("\n====Motsvarande namn på andra språk====\n", "\n====Översättningar====\n");
-            if (wikitext.IndexOf("\n====Översättning====\n") != -1)
-                wikitext = wikitext.Replace("\n====Översättning====\n", "\n====Översättningar====\n");
-
             var res = new List<Section>();
             for (int end = 0; end < wikitext.Length;)
             {

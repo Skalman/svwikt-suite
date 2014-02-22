@@ -13,6 +13,7 @@ namespace SvwiktSuite
 
         public OptionsStruct Options { get; private set; }
 
+        protected FormattingEditor formattingEditor;
         protected TranslationEditor translationEditor;
 
         public EditController(MediaWikiApi mediaWikiApi)
@@ -21,6 +22,8 @@ namespace SvwiktSuite
             thread = null;
             Language = new Language(mwApi);
             Options = new OptionsStruct();
+
+            formattingEditor = new FormattingEditor();
             translationEditor = new TranslationEditor(this, mwApi);
         }
 
@@ -178,6 +181,7 @@ namespace SvwiktSuite
         {
             Console.WriteLine("EDIT BATCH");
 
+            formattingEditor.EditBatch(batch);
             translationEditor.EditBatch(batch);
             SaveBatch(batch);
         }
