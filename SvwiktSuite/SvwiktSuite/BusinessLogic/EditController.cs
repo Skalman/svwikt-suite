@@ -41,8 +41,14 @@ namespace SvwiktSuite
             public delegate bool SaveCallback(Page page);
 
             public SaveCallback OnSave = null;
-            public TranslationEditor.PageDoneCallback OnPageDone = null;
-            public TranslationEditor.LogCallback OnLog = null;
+
+            public delegate void PageDoneCallback(string title);
+
+            public PageDoneCallback OnPageDone = null;
+
+            public delegate void LogCallback(string message);
+
+            public LogCallback OnLog = null;
 
             public delegate void EditDoneCallback();
 

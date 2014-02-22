@@ -8,39 +8,14 @@ namespace SvwiktSuite
 {
     public class TranslationEditor : IBatchEditor
     {
-        public delegate bool SaveCallback(
-            string title,
-            string summary,
-            out string changedSummary,
-            string wikitextBefore,
-            string wikitextAfter,
-            out string changedWikitext);
-
-        public delegate void PageDoneCallback(string title);
-
-        public delegate void LogCallback(string message);
-
-        private void LogWrite(string format, params object[] args)
+        private void Log(string format, params object[] args)
         {
             OnLog(string.Format(format, args));
         }
 
-        private static bool saveReturnTrue(string title,
-                                            string summary, out string changedSummary,
-                                            string before, string after, out string changedWikitext)
-        {
-            changedSummary = summary;
-            changedWikitext = after;
-            return true;
-        }
-
-        private static void Noop(string title)
-        {
-        }
-
         protected MediaWikiApi mwApi;
         protected EditController ctrl;
-        public LogCallback OnLog = null;
+        public EditController.OptionsStruct.LogCallback OnLog = null;
 
         public TranslationEditor(
             EditController controller,
@@ -69,7 +44,7 @@ namespace SvwiktSuite
                 }
             }
 
-            LogWrite("See whether pages exist on {0} wiki(s)...", links.Count);
+            Log("See whether pages exist on {0} wiki(s)...", links.Count);
 
             // Check whether the pages exist
             var linksExist = new Dictionary<string, IDictionary<string, bool>>();
