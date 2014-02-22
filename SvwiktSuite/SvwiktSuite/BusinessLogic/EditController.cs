@@ -9,13 +9,19 @@ namespace SvwiktSuite
         private MediaWikiApi mwApi;
         private Thread thread;
 
+        public Language Language { get; private set; }
+
         public OptionsStruct Options { get; private set; }
+
+        protected TranslationEditor translationEditor;
 
         public EditController(MediaWikiApi mediaWikiApi)
         {
             mwApi = mediaWikiApi;
             thread = null;
+            Language = new Language(mwApi);
             Options = new OptionsStruct();
+            translationEditor = new TranslationEditor(this, mwApi);
         }
 
         public enum SourceType
@@ -31,9 +37,12 @@ namespace SvwiktSuite
             public string StartAt = "";
             public SourceType Source = SourceType.Dump;
             public string DumpFilename = null;
-            public TranslationLinkUpdater.SaveCallback OnSave = null;
-            public TranslationLinkUpdater.PageDoneCallback OnPageDone = null;
-            public TranslationLinkUpdater.LogCallback OnLog = null;
+
+            public delegate bool SaveCallback(Page page);
+
+            public SaveCallback OnSave = null;
+            public TranslationEditor.PageDoneCallback OnPageDone = null;
+            public TranslationEditor.LogCallback OnLog = null;
 
             public delegate void EditDoneCallback();
 
@@ -70,7 +79,7 @@ namespace SvwiktSuite
 
             Console.WriteLine("signed in as {0}", mwApi.SignedInUser);
 
-            thread = new Thread(new ThreadStart(RealEdit));
+            thread = new Thread(new ThreadStart(EditStart));
             thread.Start();
         }
 
@@ -85,7 +94,7 @@ namespace SvwiktSuite
             thread = null;
         }
 
-        protected void RealEdit()
+        protected void EditStart()
         {
             try
             {
@@ -118,19 +127,14 @@ namespace SvwiktSuite
                 {
                     throw new Exception("Internal error: Invalid value of Options.Source");
                 }
-                var tl = new TranslationLinkUpdater(
-                    api: mwApi,
-                    saveCallback: Options.OnSave,
-                    pageDoneCallback: Options.OnPageDone,
-                    logCallback: Options.OnLog);
-                tl.Update(pages: pages);
+                Edit(pages);
             } catch (ThreadInterruptedException)
             {
                 Console.WriteLine("Thread interrupted [no worries]");
             } catch (Language.LanguageException ex)
             {
                 LogAll("Language exception: {0}", ex.Message);
-            } catch (TranslationLinkUpdater.SortException ex)
+            } catch (TranslationEditor.SortException ex)
             {
                 LogAll("Sort exception: {0}", ex.Message);
             } catch (MediaWikiApi.NotLoggedInException)
@@ -140,6 +144,76 @@ namespace SvwiktSuite
             Console.WriteLine("Thread finished");
             if (Options.OnEditDone != null)
                 Options.OnEditDone();
+        }
+
+        protected void Edit(IEnumerable<Page> pages)
+        {
+            Log("EDIT PAGES");
+
+            translationEditor.OnLog = Log;
+
+            var step = 2000;
+
+            var pagesInBatch = new List<Page>();
+            foreach (var page in pages)
+            {
+                pagesInBatch.Add(page);
+                if (pagesInBatch.Count == step)
+                {
+                    EditBatch(pagesInBatch);
+                    pagesInBatch.Clear();
+                }
+            }
+            if (pagesInBatch.Count != 0)
+                EditBatch(pagesInBatch);
+        }
+
+        protected void EditBatch(IList<Page> batch)
+        {
+            Console.WriteLine("EDIT BATCH");
+
+            translationEditor.EditBatch(batch);
+            SaveBatch(batch);
+        }
+
+        protected void SaveBatch(IList<Page> batch)
+        {
+            foreach (var page in batch)
+            {
+                if (page.Changed)
+                {
+                    var proposedText = page.Text;
+                    if (Options.OnSave == null || Options.OnSave(page))
+                    {
+                        try
+                        {
+                            mwApi.SavePage(
+                                page,
+                                nocreate: true,
+                                bot: proposedText == page.Text);
+                            LogAll("{0}: Saved ({1})",
+                                     page.Title,
+                                     page.Summary.Text);
+                        } catch (MediaWikiApi.EditConflictException)
+                        {
+                            LogAll("{0}: Edit conflict, skipped ({1})",
+                                      page.Title,
+                                      page.Summary.Text);
+                        }
+
+                    } else
+                    {
+                        LogAll("{0}: Chose not to save ({1})",
+                                 page.Title,
+                                 page.Summary.Text);
+                    }
+                } else
+                {
+                    Console.WriteLine("{0}: No update",
+                                      page.Title);
+                }
+            }
+
         }
 
         public bool SignIn(string username, string password)

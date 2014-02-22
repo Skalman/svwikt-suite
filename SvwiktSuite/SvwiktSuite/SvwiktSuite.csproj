@@ -89,13 +89,14 @@
     <Compile Include="Core\PageInflections.cs" />
     <Compile Include="Core\ParsedPage.cs" />
     <Compile Include="DataAccess\ToolLabsApi.cs" />
-    <Compile Include="BusinessLogic\TranslationLinkUpdater.cs" />
     <Compile Include="Core\WikitextUtils.cs" />
     <Compile Include="DataAccess\DumpReader.cs" />
     <Compile Include="BusinessLogic\Settings.cs" />
     <Compile Include="Core\Section.cs" />
     <Compile Include="BusinessLogic\DumpDownload.cs" />
     <Compile Include="BusinessLogic\EditController.cs" />
+    <Compile Include="BusinessLogic\TranslationEditor.cs" />
+    <Compile Include="BusinessLogic\IBatchEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

@@ -107,23 +107,17 @@ namespace SvwiktSuite
 
         protected volatile string saveCallbackAnswer = null;
 
-        protected bool SaveCallback(string title,
-                                 string summary, out string changedSummary,
-                                 string before, string after, out string changedWikitext)
+        protected bool SaveCallback(Page page)
         {
-            PageDoneCallback(title, addExclamation: false);
+            PageDoneCallback(page.Title, addExclamation: false);
             if (!checkbuttonConfirm.Active)
-            {
-                changedSummary = summary;
-                changedWikitext = after;
                 return true;
-            }
 
             Gtk.Application.Invoke(delegate
             {
-                entrySummary.Text = summary;
-                textviewBefore.Buffer.Text = before;
-                textviewAfter.Buffer.Text = after;
+                entrySummary.Text = page.Summary.Text;
+                textviewBefore.Buffer.Text = page.OriginalText;
+                textviewAfter.Buffer.Text = page.Text;
                 vboxConfirmEdit.Sensitive = true;
                 entrySummary.GrabFocus();
             }
@@ -139,8 +133,8 @@ namespace SvwiktSuite
             {
                 Thread.Sleep(300);
             }
-            changedSummary = entrySummary.Text;
-            changedWikitext = textviewAfter.Buffer.Text;
+            page.Summary.Text = entrySummary.Text;
+            page.Text = textviewAfter.Buffer.Text;
             Gtk.Application.Invoke(delegate
             {
                 vboxConfirmEdit.Sensitive = false;

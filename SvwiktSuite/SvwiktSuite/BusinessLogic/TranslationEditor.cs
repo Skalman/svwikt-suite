@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace SvwiktSuite
 {
-    public class TranslationLinkUpdater
+    public class TranslationEditor : IBatchEditor
     {
         public delegate bool SaveCallback(
             string title,
@@ -22,7 +22,7 @@ namespace SvwiktSuite
 
         private void LogWrite(string format, params object[] args)
         {
-            logCallback(string.Format(format, args));
+            OnLog(string.Format(format, args));
         }
 
         private static bool saveReturnTrue(string title,
@@ -38,59 +38,21 @@ namespace SvwiktSuite
         {
         }
 
-        protected MediaWikiApi Api;
-        protected SaveCallback saveCallback;
-        protected PageDoneCallback pageDoneCallback;
-        protected LogCallback logCallback;
-        protected Language language;
+        protected MediaWikiApi mwApi;
+        protected EditController ctrl;
+        public LogCallback OnLog = null;
 
-        public TranslationLinkUpdater(
-            MediaWikiApi api,
-            SaveCallback saveCallback = null,
-            PageDoneCallback pageDoneCallback = null,
-            LogCallback logCallback = null)
+        public TranslationEditor(
+            EditController controller,
+            MediaWikiApi api)
         {
-            Api = api;
-            if (saveCallback == null)
-                saveCallback = saveReturnTrue;
-            if (pageDoneCallback == null)
-                pageDoneCallback = Noop;
-            if (logCallback == null)
-                logCallback = Console.WriteLine;
-            this.saveCallback = saveCallback;
-            this.pageDoneCallback = pageDoneCallback;
-            this.logCallback = logCallback;
-
-            language = new Language(api);
+            ctrl = controller;
+            mwApi = api;
         }
 
-        public void Update(
-            /*string startAt = "",*/
-            IEnumerable<Page> pages,
-            int maxPages = 10)
+        public void EditBatch(
+            IList<Page> pages)
         {
-            logCallback("UPDATE PAGES");
-
-            var step = 2000;
-
-            var pagesInBatch = new List<Page>();
-            foreach (var page in pages)
-            {
-                pagesInBatch.Add(page);
-                if (pagesInBatch.Count == step)
-                {
-                    UpdateBatch(pagesInBatch);
-                    pagesInBatch.Clear();
-                }
-            }
-            if (pagesInBatch.Count != 0)
-                UpdateBatch(pagesInBatch);
-        }
-
-        protected void UpdateBatch(
-            List<Page> pages)
-        {
-            Console.WriteLine("UPDATE BATCH");
             // Find links in pages
             var links = new Dictionary<string, List<string>>();
             foreach (var page in pages)
@@ -114,11 +76,11 @@ namespace SvwiktSuite
             foreach (var l in links)
             {
                 IDictionary<string, bool> pagesExist = null;
-                if (language.HasWiki(l.Key))
+                if (ctrl.Language.HasWiki(l.Key))
                 {
                     try
                     {
-                        pagesExist = Api.PagesExist(l.Key, l.Value);
+                        pagesExist = mwApi.PagesExist(l.Key, l.Value);
                     } catch (WebException e)
                     {
                         if (e.Message == "Max. redirections exceeded.")
@@ -145,125 +107,72 @@ namespace SvwiktSuite
             // Update the pages and save them
             foreach (var page in pages)
             {
-                string proposedSummary;
-                string proposedWikitext;
-                var oldWikitext = page.Text;
-                if (UpdateTranslations(
-                        page.Title,
-                        oldWikitext,
-                        linksExist,
-                        out proposedWikitext,
-                        out proposedSummary))
-                {
-                    string summary;
-                    string wikitext;
-
-                    if (saveCallback(
-                            page.Title,
-                            proposedSummary, out summary,
-                            oldWikitext, proposedWikitext, out wikitext))
-                    {
-                        page.Text = wikitext;
-
-                        try
-                        {
-                            Api.SavePage(
-                                page,
-                                summary,
-                                nocreate: true,
-                                bot: proposedWikitext == wikitext);
-                            LogWrite("{0}: Saved ({1})",
-                                     page.Title,
-                                     summary);
-                        } catch (MediaWikiApi.EditConflictException)
-                        {
-                            LogWrite("{0}: Edit conflict, skipped ({1})",
-                                      page.Title,
-                                      summary);
-                        }
-                    } else
-                    {
-                        LogWrite("{0}: Chose not to save ({1})",
-                                 page.Title,
-                                 summary);
-                    }
-                } else
-                {
-                    Console.WriteLine("{0}: No update",
-                                      page.Title);
-                }
-                pageDoneCallback(page.Title);
+                UpdateTranslations(page, linksExist);
             }
         }
 
-        protected bool UpdateTranslations(
-            string title,
-            string wikitext,
-            Dictionary<string, IDictionary<string, bool>> linksExist,
-            out string newWikitext,
-            out string summary)
+        protected void UpdateTranslations(
+            Page page,
+            Dictionary<string, IDictionary<string, bool>> linksExist)
         {
             var sections = new List<Section>();
             var lastEnd = 0;
             var summaryParts = new SortedSet<string>();
 
             // Not just translations, but important formatting
-            wikitext = FormatPage(wikitext, summaryParts);
+            FormatPage(page);
 
-            foreach (var s in GetTranslationSections(title, wikitext))
+            foreach (var s in GetTranslationSections(page.Title, page.Text))
             {
-                sections.Add(new Section(title, wikitext, lastEnd, s.Start - lastEnd));
+                sections.Add(new Section(page.Title, page.Text, lastEnd, s.Start - lastEnd));
                 FormatTranslationSection(s, summaryParts);
                 UpdateTranslations(s, linksExist, summaryParts);
                 sections.Add(s);
                 lastEnd = s.End;
             }
-            sections.Add(new Section(title, wikitext, lastEnd, wikitext.Length - lastEnd));
+            sections.Add(new Section(page.Title, page.Text, lastEnd, page.Text.Length - lastEnd));
             if (summaryParts.Count > 0)
             {
-                newWikitext = string.Join("", sections);
-                summary = string.Join("; ", summaryParts);
-                return true;
-            } else
-            {
-                newWikitext = wikitext;
-                summary = null;
-                return false;
+                page.Text = string.Join("", sections);
+                page.Summary.AddMinor(string.Join("; ", summaryParts));
             }
         }
 
-        static string FormatPage(string wikitext, ISet<string> summaryParts)
+        static void FormatPage(Page page)
         {
+            var wikitext = page.Text;
+            var summary = page.Summary;
+
             // Added on many pages by User:Pametzma
             if (wikitext.IndexOf("----") != -1)
             {
                 var newWikitext = Regex.Replace(wikitext, @"\n+(\{\{nollpos\}\}\n|\-{4,}\n)+\n*", "\n\n");
                 if (wikitext != newWikitext)
                 {
-                    summaryParts.Add("ta bort onödig {{nollpos}} och ----");
+                    summary.AddMinor("ta bort onödig {{nollpos}} och ----");
                     wikitext = newWikitext;
                 }
             }
 
             if (wikitext.IndexOf("\n=====Översättningar=====\n") != -1)
             {
-                summaryParts.Add("översättningsrubrik är H4");
+                summary.Add("översättningsrubrik är H4");
                 wikitext = wikitext.Replace("\n=====Översättningar=====\n", "\n====Översättningar====\n");
             }
 
             if (wikitext.IndexOf("\n====Översättning====\n") != -1)
             {
-                summaryParts.Add("'Översättning' > 'Översättningar'");
+                summary.Add("'Översättning' > 'Översättningar'");
                 wikitext = wikitext.Replace("\n====Översättning====\n", "\n====Översättningar====\n");
             }
 
             if (wikitext.IndexOf("\n====Motsvarande namn på andra språk====\n") != -1)
             {
-                summaryParts.Add("'Motsvarande namn på andra språk' > 'Översättningar'");
+                summary.Add("'Motsvarande namn på andra språk' > 'Översättningar'");
                 wikitext = wikitext.Replace("\n====Motsvarande namn på andra språk====\n", "\n====Översättningar====\n");
             }
 
-            return wikitext;
+            page.Text = wikitext;
         }
 
         protected void FormatTranslationSection(Section section, ISet<string> summary)
@@ -394,10 +303,10 @@ namespace SvwiktSuite
                     }
                 }
             }
-            if (language.CorrectMisspellings(section))
-            {
+
+            if (ctrl.Language.CorrectMisspellings(section))
                 summary.Add("korrigera språknamn");
-            }
+
             if (section.Text.IndexOf("\n* ") != -1 || section.Text.IndexOf("\n** ") != -1)
             {
                 section.Text = section.Text.Replace("\n* ", "\n*");
@@ -602,7 +511,7 @@ namespace SvwiktSuite
                     {
                         // assume missed colon
                         var langName = line.Substring(1);
-                        lang = language.GetCode(langName.Trim());
+                        lang = ctrl.Language.GetCode(langName.Trim());
                     }
                     continue;
                 }
@@ -622,7 +531,7 @@ namespace SvwiktSuite
                 } else
                 {
                     var langName = line.Substring(1, line.IndexOf(':') - 1);
-                    lang = language.GetCode(langName.Trim());
+                    lang = ctrl.Language.GetCode(langName.Trim());
                 }
                 if (lang == null)
                 {
@@ -671,7 +580,7 @@ namespace SvwiktSuite
                             // [[#Engelska|fusion]], [[#Engelska|nuclear fusion]]
                             var skip = false;
                             if (word [0] == '#'
-                                && word.ToLower() == "#" + language.GetName(lang))
+                                && word.ToLower() == "#" + ctrl.Language.GetName(lang))
                             {
                                 word = section.DocumentTitle;
                                 if ("|" + word == m.Groups [6].Captures [0].Value)
