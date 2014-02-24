@@ -253,7 +253,10 @@ namespace SvwiktSuite
                 }
 
                 // Find bold line.
-                pos = text.LastIndexOf("\n'''");
+                pos = text.LastIndexOf("'''");
+                if (pos != -1)
+                    pos = text.LastIndexOf('\n', pos);
+
                 // E.g. Chinese doesn't use bold.
                 if (pos == -1 && PageTitle != null)
                 {
